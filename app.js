@@ -6,13 +6,10 @@ const morgan = require('morgan')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const Product = require('./models/product')
-const productsRoutes = require('./routers/products')
-const categoriesRoutes = require('./routes/categories')
-const usersRoutes = require('./routes/users')
-const ordersRoutes = require('./routes/orders')
 
 require('dotenv/config')
 const api = process.env.API_URL
+const database_uri = process.env.CONNECTION_STRING
 
 app.use(cors())
 app.options('*',cors())
@@ -35,7 +32,7 @@ app.use(`${api}/orders`, ordersRoutes);
 
 
 //mongodb connect
-mongoose.connect('mongodb+srv://toy-store-user:iam277353@cluster0.hodxf.mongodb.net/toy-store-database')
+mongoose.connect(database_uri)
 .then(()=>{
     console.log('database connection is ready...')
 })
