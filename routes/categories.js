@@ -63,7 +63,7 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
       const categoryId = req.params.id;
-      const deletedCategory = await Category.findByIdAndRemove(categoryId);
+      const deletedCategory = await Category.findByIdAndDelete(categoryId);
       res.json(deletedCategory);
     } catch (error) {
       console.error('Error deleting category:', error);
