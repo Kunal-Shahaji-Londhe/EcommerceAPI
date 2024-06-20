@@ -32,6 +32,7 @@ const Razorpay = require('razorpay');
 const api = process.env.API_URL;
 const razorpay_key_id = 'rzp_test_gqIHaDQQDjWl67'
 const razorpay_key_secret = 'SUBVqgIoHKWkjif0vzy7iPPH'
+const port = process.env.PORT;
 
 app.use(`${api}/categories`, categoriesRoutes);
 app.use(`${api}/products`, productsRoutes);
@@ -85,7 +86,7 @@ mongoose.connect(process.env.CONNECTION_STRING)
 
 
 //Server
-app.listen(3000, ()=>{
+app.listen(port, ()=>{
 
     console.log('server is running http://localhost:3000');
 })
