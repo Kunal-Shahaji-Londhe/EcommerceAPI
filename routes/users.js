@@ -80,25 +80,31 @@ router.put('/:id',async (req, res)=> {
 })
 
 router.post('/login', async (req, res) => {
+    console.log('Received login request:', req.body);
     const user = await User.findOne({email: req.body.email})
     const secret = process.env.secret
 
     if(!user)
     return res.status(400).send('user not found!')
 
-    if(user && bcrypt.compareSync(req.body.password, user.passwordHash)){
+    const passwordValid = await bcrypt.compareSync(req.body.password, user.passwordHash);
+
+    if(user && passwordValid ){
         
-        const token = jwt.sign(
-            {
-                userId:user.id,
-                isAdmin:user.isAdmin
-            },
-            secret,
-            {expiresIn : '1d'}
-        )
-        
-        res.status(200).send({user: user.email , token:token})
-    }
+        const token = 
+            jwt.sign(
+                {
+                    userId:user.id,
+                    isAdmin:user.isAdmin
+                },
+                secret,
+                {expiresIn : '1d'}
+
+               
+            )
+        console.log('Generated Token:', token);
+        res.status(200).send({user: user , token:token})
+            }
     else{
         res.status(400).send('password is wrong!!');
     }

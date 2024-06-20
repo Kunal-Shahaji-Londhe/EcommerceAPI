@@ -6,7 +6,16 @@ const router = express.Router();
 
 //get all the orders from database
 router.get(`/`, async (req, res) =>{
-    const orderList = await Order.find().populate('user','name').sort({'dateOrdered': -1});
+    const orderList = await Order.find()
+    .populate('user')
+    .populate({
+        path: 'orderItems',
+        populate: {
+            path: 'product',
+            model: 'Product'
+        }
+    })
+    .sort({'dateOrdered': -1});
 
     if(!orderList) {
         res.status(500).json({success: false})
@@ -61,6 +70,7 @@ router.post('/', async (req, res) => {
         status: req.body.status,
         totalPrice: totalPrice,
         user: req.body.user,
+        product: req.body.product,
     })
 
     order = await order.save()
@@ -131,20 +141,81 @@ router.get(`/get/count`, async (req, res) =>{
     });
 })
 
+//cancel order
+router.put('/cancel/:id', async (req, res) => {
+    try {
+        const orderId = req.params.id;
+        const { status } = req.body;
+        const order = await Order.findByIdAndUpdate(orderId, { status }, { new: true });
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+        res.json(order);
+    } catch (error) {
+        console.error('Error updating order:', error);
+        res.status(500).json({ error: 'Failed to update order' });
+    }
+});
+
+
 
 //get userorders by user id 
 router.get(`/get/userorders/:userid`, async (req, res) =>{
-    const userOrderList = await Order.find({user: req.params.userid})
-    /*
-    .populate({ 
-        path: 'orderItems', populate: {
-            path : 'product', populate: 'category'} 
-        }).sort({'dateOrdered': -1});
-*/
-    if(!userOrderList) {
-        res.status(500).json({success: false})
-    } 
-    res.send(userOrderList);
-})
+    try {
+        const userOrderList = await Order.find({user: req.params.userid})
+            .populate({
+                path: 'orderItems',
+                populate: {
+                    path: 'product'
+                }
+            })
+            .sort({'dateOrdered': -1});
+
+        if(!userOrderList) {
+            return res.status(404).json({success: false, message: 'No orders found for the user.'});
+        } 
+
+        res.status(200).json({success: true, userOrderList});
+    } catch (error) {
+        res.status(500).json({success: false, error: error.message});
+    }
+});
+
+
+router.get(`/`, async (req, res) =>{
+    try {
+        let query = {};
+
+        // Parse startDate and endDate from query parameters
+        const { startDate, endDate } = req.query;
+
+        // If startDate and endDate are provided, add date range filtering to the query
+        if (startDate && endDate) {
+            query.dateOrdered = { $gte: new Date(startDate), $lte: new Date(endDate) };
+        }
+        console.log(startDate,endDate)
+        const orderList = await Order.find(query)
+            .populate('user')
+            .populate({
+                path: 'orderItems',
+                populate: {
+                    path: 'product',
+                    model: 'Product'
+                }
+            })
+            .sort({'dateOrdered': -1});
+
+        if (!orderList) {
+            return res.status(500).json({success: false});
+        }
+
+        res.send(orderList);
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        res.status(500).json({error: 'Internal server error'});
+    }
+});
+
+
 
 module.exports =router;

@@ -1,4 +1,5 @@
 const expressJwt = require('express-jwt');
+require('dotenv').config();
 
 function authJwt() {
     const secret = process.env.secret;
@@ -20,11 +21,14 @@ function authJwt() {
 }
 
 async function isRevoked(req, payload, done) {
-    if(!payload.isAdmin) {
-        done(null, true)
-    }
+    // Allow access for all routes except those that require admin access
+    const isUpdatingUserProfile = req.path === `/api/v1/users/${payload._id}` && req.method === 'PUT';
 
-    done();
+    if (!payload.isAdmin || isUpdatingUserProfile) {
+        done(null, false);
+    } else {
+        done(null, true);
+    }
 }
 
 

@@ -59,6 +59,26 @@ router.get(`/:id`, async (req, res) =>{
     res.send(product);
 })
 
+
+//get products with category id
+  
+router.get(`/byCategory/:categoryId`, async (req, res) => {
+    try {
+        const products = await Product.find({ category: req.params.categoryId }).populate('category');
+
+        if (!products || products.length === 0) {
+            return res.status(404).json({ success: false, message: 'No products found for the given category ID' });
+        }
+
+        res.status(200).json({ success: true, products });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+});
+
+
+
 router.post(`/`, uploadOptions.single('image'), async (req, res) =>{
     const category = await Category.findById(req.body.category);
     if(!category) return res.status(400).send('Invalid Category')

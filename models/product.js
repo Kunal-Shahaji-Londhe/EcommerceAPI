@@ -54,4 +54,9 @@ const productSchema = mongoose.Schema({
     }
 })
 
+// Add a new attribute to the schema
+productSchema.add({
+    quantity: { type: Number, default: 0 },
+});
+
 exports.Product = mongoose.model('Product', productSchema);
